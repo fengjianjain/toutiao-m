@@ -5,6 +5,7 @@ import store from './store'
 import './styles/index.less'
 
 import Vant from 'vant'
+import './utils/dayjs'
 import 'vant/lib/index.css'
 // 动态设置rem值
 import 'amfe-flexible'
