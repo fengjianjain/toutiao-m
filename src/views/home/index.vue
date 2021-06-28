@@ -11,29 +11,39 @@
         <article-list :channel="item"></article-list>
       </van-tab>
       <div slot="nav-right" class="placeholder"></div>
-      <div slot="nav-right" class="hamburger-btn">
+      <div slot="nav-right" class="hamburger-btn" @click="show=true" >
         <i class="toutiao toutiao-gengduo"></i>
       </div>
     </van-tabs>
+    <van-popup closeable close-icon-position="top-left" v-model="show" position="bottom" :style="{ height: '100%' } " >
+      <channel-edit :myChannel="channel" :active="active" :active-index.sync="active" @close-poup="show=false"></channel-edit>
+    </van-popup>
   </div>
 </template>
 
 <script>
 import { getUserChannels } from '@/api/user.js'
 import ArticleList from './components/article-list.vue'
+import ChannelEdit from './components/channel-edit'
+import { mapState } from 'vuex'
+import { getItem } from '@/utils/storage.js'
 export default {
   name: 'HomePage',
   components: {
-    ArticleList
+    ArticleList,
+    ChannelEdit
   },
   props: {},
   data () {
     return {
       active: 0,
-      channel: []
+      channel: [],
+      show: false
     }
   },
-  computed: {},
+  computed: {
+    ...mapState(['user'])
+  },
   watch: {},
   created () {
     this.loadChannels()
@@ -41,9 +51,28 @@ export default {
   mounted () {},
   methods: {
     async loadChannels () {
-      const { data } = await getUserChannels()
-      this.channel = data.data.channels
-      // console.log(this.channel)
+      // const { data } = await getUserChannels()
+      // this.channel = data.data.channels
+      let channels = []
+      try {
+        if (this.user) {
+          const { data } = await getUserChannels()
+          channels = data.data.channels
+        } else {
+          const localChannels = getItem('channels')
+          if (localChannels) {
+            // 有本地频道数据，则使用
+            channels = localChannels
+          } else {
+            // 没有本地频道数据，则请求获取默认推荐的频道列表
+            const { data } = await getUserChannels()
+            channels = data.data.channels
+          }
+        }
+        this.channel = channels
+      } catch (error) {
+        this.$toast('数据获取失败')
+      }
     }
   }
 }
