@@ -4,7 +4,7 @@
      class="page-nav-bar"
      fixed
     >
-    <van-button slot="title" icon="search" class="search-button">搜索</van-button>
+    <van-button slot="title" icon="search" class="search-button" to="/search">搜索</van-button>
     </van-nav-bar>
     <van-tabs v-model="active" animated swipeable class="channel-tabs">
       <van-tab v-for="item in channel" :key="item.id" :title="item.name" >
