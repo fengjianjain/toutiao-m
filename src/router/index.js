@@ -22,6 +22,11 @@ const routes = [
     props: true
   },
   {
+    name: 'user-profile',
+    path: '/user/profile',
+    component: () => import('@/views/user-profile')
+  },
+  {
     path: '/',
     component: () => import('@/views/layout'),
     children: [
