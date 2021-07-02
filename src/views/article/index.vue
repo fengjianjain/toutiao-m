@@ -43,6 +43,7 @@
         <!-- 文章内容 -->
         <div class="article-content markdown-body" v-html="article.content" ref="articlecontent"></div>
         <van-divider>正文结束</van-divider>
+        <comment-list :articleId="article.art_id" @onload-success="totalcomment=$event.total_count" :list="Commentlist" @listreply="onreply"></comment-list>
         <!-- 底部区域 -->
          <div class="article-bottom">
            <van-button
@@ -50,18 +51,23 @@
              type="default"
              round
              size="small"
+             @click="show=true"
            >写评论</van-button>
            <van-icon
              name="comment-o"
-             badge="123"
+             :badge="totalcomment"
              color="#777"
            />
            <collect-article v-model="article.is_collected" :articleId="article.art_id"></collect-article>
-           <like-article v-model="article.attitude" :articleId="article.art_id"></like-article>
+           <!-- <like-article v-model="article.attitude" :articleId="article.art_id"></like-article> -->
            <van-icon name="share" color="#777777"></van-icon>
          </div>
          <!-- /底部区域 -->
+         <van-popup v-model="show" position="bottom">
+           <comment-post :target="article.art_id" @onPost="onpostsuccess"></comment-post>
+         </van-popup>
       </div>
+
       <!-- /加载完成-文章详情 -->
 
       <!-- 加载失败：404 -->
@@ -79,7 +85,9 @@
       </div>
       <!-- /加载失败：其它未知错误（例如网络原因或服务端异常） -->
     </div>
-
+    <van-popup v-model="isreplyshow" position="bottom" :style="{ height: '100%' }">
+      <comment-reply :comment="currentcomment" @click-close="isreplyshow=false" v-if="isreplyshow"></comment-reply>
+    </van-popup>
   </div>
 </template>
 
@@ -89,14 +97,25 @@ import { ImagePreview } from 'vant'
 
 import FollowUser from '@/components/followuser'
 import CollectArticle from '@/components/collect-article'
-import LikeArticle from '@/components/like-article'
+// import LikeArticle from '@/components/like-article'
+import CommentList from './components/comment-list.vue'
+import CommentPost from './components/comment-post.vue'
+import CommentReply from './components/comment-reply.vue'
 import './github-markdown.css'
 export default {
   name: 'ArticleIndex',
   components: {
     FollowUser,
     CollectArticle,
-    LikeArticle
+    // LikeArticle,
+    CommentList,
+    CommentPost,
+    CommentReply
+  },
+  provide: function () {
+    return {
+      articleId: this.articleId
+    }
   },
   props: {
     articleId: {
@@ -108,8 +127,12 @@ export default {
     return {
       article: {}, // 文章详情
       loading: true,
-      errorStatus: 0
-
+      errorStatus: 0,
+      totalcomment: 10,
+      show: false,
+      Commentlist: [],
+      isreplyshow: false,
+      currentcomment: {}
     }
   },
   computed: {},
@@ -149,6 +172,15 @@ export default {
           })
         }
       })
+    },
+    onpostsuccess (data) {
+      this.show = false
+      this.Commentlist.unshift(data.new_obj)
+    },
+    onreply (comment) {
+      // console.log(comment)
+      this.currentcomment = comment
+      this.isreplyshow = true
     }
 
   }
